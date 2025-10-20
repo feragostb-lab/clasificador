@@ -1,0 +1,153 @@
+<div class="export-container">
+  <h2>Export Findings</h2>
+
+  <!-- Error display -->
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <p>{{ errorMessage() }}</p>
+      <button (click)="clearError()">Dismiss</button>
+    </div>
+  }
+
+  <!-- Export Result -->
+  @if (exportResult()) {
+    <div class="success-banner">
+      <div class="success-content">
+        <h3>Export Successful!</h3>
+        <p><strong>File:</strong> {{ exportResult()!.dataFilePath }}</p>
+        <p><strong>Findings Exported:</strong> {{ exportResult()!.findingsCount }}</p>
+        <p><strong>Exported At:</strong> {{ formatTimestamp(exportResult()!.exportedAt) }}</p>
+        @if (exportResult()!.imagesZipPath) {
+          <p><strong>Images ZIP:</strong> {{ exportResult()!.imagesZipPath }}</p>
+        }
+      </div>
+      <button (click)="clearResult()">Dismiss</button>
+    </div>
+  }
+
+  <!-- Summary -->
+  <div class="export-summary">
+    <h3>Summary</h3>
+    <div class="summary-stats">
+      <div class="stat-card">
+        <span class="stat-value">{{ getFindingsCount() }}</span>
+        <span class="stat-label">Total Findings</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ getCompletedCount() }}</span>
+        <span class="stat-label">Completed</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Options -->
+  <div class="export-options">
+    <h3>Export Options</h3>
+
+    <div class="option-group">
+      <label for="format">Format:</label>
+      <select 
+        id="format" 
+        [value]="exportFormat()" 
+        (change)="exportFormat.set($any($event.target).value)"
+        [disabled]="isExporting()">
+        <option value="csv">CSV</option>
+        <option value="json">JSON</option>
+      </select>
+    </div>
+
+    <div class="option-group">
+      <label for="prefix">File Name Prefix:</label>
+      <input 
+        id="prefix" 
+        type="text" 
+        [value]="fileNamePrefix()" 
+        (input)="fileNamePrefix.set($any($event.target).value)"
+        [disabled]="isExporting()"
+        placeholder="tree-findings" />
+    </div>
+
+    <div class="option-group checkbox-group">
+      <label>
+        <input 
+          type="checkbox" 
+          [checked]="includeImages()" 
+          (change)="includeImages.set($any($event.target).checked)"
+          [disabled]="isExporting()" />
+        Include Images in Export
+      </label>
+    </div>
+
+    <div class="option-group checkbox-group">
+      <label>
+        <input 
+          type="checkbox" 
+          [checked]="includeAudio()" 
+          (change)="includeAudio.set($any($event.target).checked)"
+          [disabled]="isExporting()" />
+        Include Audio Files in Export
+      </label>
+    </div>
+  </div>
+
+  <!-- Export Actions -->
+  <div class="export-actions">
+    <h3>Export Actions</h3>
+
+    <div class="action-buttons">
+      <button 
+        class="btn-primary" 
+        (click)="startExport()"
+        [disabled]="isExporting() || getFindingsCount() === 0">
+        @if (isExporting()) {
+          Exporting...
+        } @else {
+          Export {{ exportFormat() === 'csv' ? 'CSV' : 'JSON' }}
+        }
+      </button>
+
+      <button 
+        class="btn-secondary" 
+        (click)="createImagesZip()"
+        [disabled]="isExporting() || getFindingsCount() === 0">
+        @if (isExporting()) {
+          Creating ZIP...
+        } @else {
+          Create Images ZIP
+        }
+      </button>
+
+      <button 
+        class="btn-success" 
+        (click)="exportCompletePackage()"
+        [disabled]="isExporting() || getFindingsCount() === 0">
+        @if (isExporting()) {
+          Exporting Package...
+        } @else {
+          Export Complete Package
+        }
+      </button>
+    </div>
+
+    <p class="action-note">
+      The complete package includes {{ exportFormat() === 'csv' ? 'CSV' : 'JSON' }} data
+      @if (includeImages()) {
+        and images with EXIF metadata
+      }
+      @if (includeAudio()) {
+        and audio files
+      }.
+    </p>
+  </div>
+
+  <!-- Export Description -->
+  <div class="export-description">
+    <h3>Export Information</h3>
+    <ul>
+      <li><strong>CSV Export:</strong> Generates a comma-separated values file with all finding data including species identifications, GPS coordinates, timestamps, and audio transcriptions.</li>
+      <li><strong>JSON Export:</strong> Exports complete finding objects in JSON format with all metadata preserved.</li>
+      <li><strong>Images ZIP:</strong> Creates a ZIP archive containing all captured images with embedded EXIF data (GPS coordinates and timestamps).</li>
+      <li><strong>Complete Package:</strong> Combines data export (CSV/JSON) with images ZIP for a comprehensive export package.</li>
+    </ul>
+  </div>
+</div>
