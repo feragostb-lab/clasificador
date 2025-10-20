@@ -1,0 +1,72 @@
+<div class="capture-container">
+  <h2>Tree Capture</h2>
+
+  <!-- Error display -->
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <p>{{ errorMessage() }}</p>
+      <button (click)="clearError()">Dismiss</button>
+    </div>
+  }
+
+  <!-- GPS Status -->
+  <div class="gps-status">
+    <h3>GPS Status</h3>
+    @if (currentGpsPosition()) {
+      <div class="gps-info">
+        <p>Latitude: {{ currentGpsPosition()!.latitude.toFixed(6) }}</p>
+        <p>Longitude: {{ currentGpsPosition()!.longitude.toFixed(6) }}</p>
+        @if (currentGpsPosition()!.altitude) {
+          <p>Altitude: {{ currentGpsPosition()!.altitude!.toFixed(1) }}m</p>
+        }
+        <p>Accuracy: {{ currentGpsPosition()!.accuracy.toFixed(1) }}m</p>
+      </div>
+    } @else {
+      <p>No GPS data available</p>
+    }
+  </div>
+
+  <!-- Capture Controls -->
+  <div class="capture-controls">
+    <button 
+      class="btn-primary" 
+      (click)="requestPermissions()"
+      [disabled]="isProcessing() || isRecording()">
+      Request Permissions
+    </button>
+
+    <button 
+      class="btn-success" 
+      (click)="capturePhoto()"
+      [disabled]="isProcessing() || isRecording()">
+      @if (isProcessing()) {
+        Processing...
+      } @else {
+        Capture Photo
+      }
+    </button>
+
+    @if (!isRecording()) {
+      <button 
+        class="btn-danger" 
+        (click)="startVideoCapture()"
+        [disabled]="isProcessing()">
+        Start Video Recording
+      </button>
+    } @else {
+      <button 
+        class="btn-danger" 
+        (click)="stopVideoCapture()">
+        Stop Recording
+      </button>
+    }
+  </div>
+
+  <!-- Last Captured Photo Preview -->
+  @if (lastCapturedPhoto()) {
+    <div class="photo-preview">
+      <h3>Last Captured Photo</h3>
+      <img [src]="lastCapturedPhoto()" alt="Captured tree photo" />
+    </div>
+  }
+</div>

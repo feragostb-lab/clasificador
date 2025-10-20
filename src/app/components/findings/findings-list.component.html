@@ -1,0 +1,136 @@
+<div class="findings-container">
+  <h2>Tree Findings</h2>
+
+  <!-- Error display -->
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <p>{{ errorMessage() }}</p>
+      <button (click)="clearError()">Dismiss</button>
+    </div>
+  }
+
+  <!-- Filter Controls -->
+  <div class="filter-controls">
+    <label>Filter by Status:</label>
+    <select [value]="filterStatus()" (change)="filterByStatus($any($event.target).value)">
+      <option value="all">All</option>
+      <option value="pending">Pending</option>
+      <option value="processing">Processing</option>
+      <option value="completed">Completed</option>
+      <option value="failed">Failed</option>
+    </select>
+    <button class="btn-secondary" (click)="loadFindings()">Refresh</button>
+    <span class="count-badge">Total: {{ getTotalCount() }}</span>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-spinner">
+      <p>Loading findings...</p>
+    </div>
+  }
+
+  <!-- Findings List -->
+  @if (!isLoading() && findings().length > 0) {
+    <div class="findings-layout">
+      <div class="findings-list">
+        @for (finding of getFilteredFindings(); track finding.id) {
+          <div 
+            class="finding-card" 
+            [class.selected]="selectedFinding()?.id === finding.id"
+            (click)="selectFinding(finding)">
+            <div class="finding-header">
+              <span class="finding-id">{{ finding.id }}</span>
+              <span class="finding-status" [class]="finding.status">{{ finding.status }}</span>
+            </div>
+            <div class="finding-content">
+              @if (finding.identifications.length > 0) {
+                <p class="species-name">{{ finding.identifications[0].species }}</p>
+                <p class="confidence">{{ (finding.identifications[0].confidence * 100).toFixed(1) }}%</p>
+              }
+              <p class="timestamp">{{ formatTimestamp(finding.recordedAt) }}</p>
+            </div>
+            <button 
+              class="btn-delete" 
+              (click)="deleteFinding(finding.id); $event.stopPropagation()">
+              Delete
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Finding Details Panel -->
+      @if (selectedFinding()) {
+        <div class="finding-details">
+          <div class="details-header">
+            <h3>Finding Details</h3>
+            <button class="btn-close" (click)="clearSelection()">×</button>
+          </div>
+          
+          <div class="details-content">
+            <section>
+              <h4>Identification Results</h4>
+              <ol>
+                @for (identification of selectedFinding()!.identifications; track identification.species) {
+                  <li>
+                    <strong>{{ identification.species }}</strong><br>
+                    Confidence: {{ (identification.confidence * 100).toFixed(2) }}%<br>
+                    Model: {{ identification.modelVersion }}
+                  </li>
+                }
+              </ol>
+            </section>
+
+            <section>
+              <h4>Location</h4>
+              <p>Latitude: {{ selectedFinding()!.location.latitude.toFixed(6) }}</p>
+              <p>Longitude: {{ selectedFinding()!.location.longitude.toFixed(6) }}</p>
+              @if (selectedFinding()!.location.altitude) {
+                <p>Altitude: {{ selectedFinding()!.location.altitude!.toFixed(1) }}m</p>
+              }
+              <p>Accuracy: {{ selectedFinding()!.location.accuracy.toFixed(1) }}m</p>
+            </section>
+
+            @if (selectedFinding()!.audioTranscription) {
+              <section>
+                <h4>Audio Transcription</h4>
+                <p>{{ selectedFinding()!.audioTranscription!.text }}</p>
+                <p class="meta">
+                  Time: {{ selectedFinding()!.audioTranscription!.startTime }}s - 
+                  {{ selectedFinding()!.audioTranscription!.endTime }}s
+                </p>
+                <p class="meta">
+                  Keywords: {{ selectedFinding()!.audioTranscription!.keywords.join(', ') }}
+                </p>
+              </section>
+            }
+
+            <section>
+              <h4>Image Information</h4>
+              <p>Path: {{ selectedFinding()!.imageExif.imagePath }}</p>
+              <p>Captured: {{ formatTimestamp(selectedFinding()!.imageExif.timestamp) }}</p>
+              @if (selectedFinding()!.imageExif.width) {
+                <p>Dimensions: {{ selectedFinding()!.imageExif.width }} × {{ selectedFinding()!.imageExif.height }}</p>
+              }
+            </section>
+
+            @if (selectedFinding()!.errorMessage) {
+              <section class="error-section">
+                <h4>Error</h4>
+                <p>{{ selectedFinding()!.errorMessage }}</p>
+              </section>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && findings().length === 0) {
+    <div class="empty-state">
+      <p>No findings available.</p>
+      <p>Start capturing to create findings.</p>
+    </div>
+  }
+</div>

@@ -1,0 +1,94 @@
+<div class="processing-container">
+  <h2>Processing Pipeline</h2>
+
+  <!-- Error display -->
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <p>{{ errorMessage() }}</p>
+      <button (click)="clearError()">Dismiss</button>
+    </div>
+  }
+
+  <!-- Processing Status -->
+  <div class="processing-status">
+    <h3>Status</h3>
+    <div class="status-info">
+      <p class="status-step">Step: {{ processingStatus().step }}</p>
+      <p class="status-message">{{ processingStatus().message }}</p>
+      
+      <div class="progress-bar">
+        <div 
+          class="progress-fill" 
+          [style.width.%]="processingStatus().progress">
+        </div>
+      </div>
+      <p class="progress-text">{{ processingStatus().progress }}%</p>
+    </div>
+  </div>
+
+  <!-- Processing Steps Overview -->
+  <div class="steps-overview">
+    <h3>Pipeline Steps</h3>
+    <ol>
+      <li [class.active]="processingStatus().step === 'audio'" 
+          [class.completed]="processingStatus().progress > 10">
+        Audio keyword detection and slicing
+      </li>
+      <li [class.active]="processingStatus().step === 'video'" 
+          [class.completed]="processingStatus().progress > 30">
+        Extract frames from video
+      </li>
+      <li [class.active]="processingStatus().step === 'exif'" 
+          [class.completed]="processingStatus().progress > 50">
+        Add EXIF data (GPS, timestamp)
+      </li>
+      <li [class.active]="processingStatus().step === 'inference'" 
+          [class.completed]="processingStatus().progress > 70">
+        TFLite tree identification
+      </li>
+      <li [class.active]="processingStatus().step === 'voting'" 
+          [class.completed]="processingStatus().progress > 80">
+        Vote and select top 3
+      </li>
+      <li [class.active]="processingStatus().step === 'storing'" 
+          [class.completed]="processingStatus().progress > 90">
+        Store findings
+      </li>
+    </ol>
+  </div>
+
+  <!-- Current Finding Display -->
+  @if (currentFinding()) {
+    <div class="finding-result">
+      <h3>Processing Complete</h3>
+      <div class="finding-details">
+        <p><strong>Finding ID:</strong> {{ currentFinding()!.id }}</p>
+        <p><strong>Status:</strong> {{ currentFinding()!.status }}</p>
+        
+        <h4>Top Identifications:</h4>
+        <ol>
+          @for (identification of currentFinding()!.identifications; track identification.species) {
+            <li>
+              <strong>{{ identification.species }}</strong> 
+              (Confidence: {{ (identification.confidence * 100).toFixed(2) }}%)
+            </li>
+          }
+        </ol>
+        
+        <h4>Location:</h4>
+        <p>Lat: {{ currentFinding()!.location.latitude.toFixed(6) }}, 
+           Lon: {{ currentFinding()!.location.longitude.toFixed(6) }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- Control Buttons -->
+  <div class="control-buttons">
+    <button 
+      class="btn-primary" 
+      (click)="reset()"
+      [disabled]="processingStatus().step === 'idle'">
+      Reset
+    </button>
+  </div>
+</div>
